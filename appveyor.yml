@@ -20,7 +20,7 @@ init:
 install:
   - ps: Install-Product node 8 x64
   - git reset --hard HEAD
-  - npm
+  - npm install
   - node --version
 
 build_script:
