@@ -21,6 +21,10 @@
           description="Код со страницы https://999.md/api"
           label="Код"
         >
+          <template v-slot:description>
+            Код со страницы
+            <a href="#" @click.prevent="link('https://999.md/api')">999.md/api</a>
+          </template>
           <b-form-input v-model.trim="token"></b-form-input>
         </b-form-group>
 

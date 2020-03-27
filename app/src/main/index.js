@@ -27,7 +27,7 @@ process.on('SIGTERM', () => {
 });
 
 async function createWindow() {
-  if (!server.isRunning) {
+  if (server.isRunning) {
     await server.stop();
   }
 
@@ -55,7 +55,10 @@ async function createWindow() {
   });
 }
 
-app.on('ready', createWindow);
+app.on('ready', () => createWindow().catch((error) => {
+  console.error(error);
+  app.quit();
+}));
 
 app.on('window-all-closed', async () => {
   if (process.platform !== 'darwin') {
@@ -66,7 +69,10 @@ app.on('window-all-closed', async () => {
 
 app.on('activate', () => {
   if (mainWindow === null) {
-    createWindow();
+    createWindow().catch((error) => {
+      console.error(error);
+      app.quit();
+    });
   }
 });
 

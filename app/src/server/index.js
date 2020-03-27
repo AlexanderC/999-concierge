@@ -30,6 +30,7 @@ class Server {
     });
     this.browser = await puppeteer.launch({
       headless: !process.env.SHOW_BROWSER,
+      executablePath: Server.getChromiumExecPath(),
     });
 
     this.app.use(cors({ origin: true }));
@@ -54,6 +55,10 @@ class Server {
     this.container = {};
 
     return this;
+  }
+
+  static getChromiumExecPath() {
+    return puppeteer.executablePath().replace('app.asar', 'app.asar.unpacked');
   }
 
   get isRunning() {
