@@ -4,6 +4,7 @@ import { BootstrapVue, IconsPlugin, TablePlugin } from 'bootstrap-vue';
 import Notify from 'vue2-notify';
 import VueGlobalVar from 'vue-global-var';
 import VueRecomputed from 'vue-recomputed';
+import VueInterval from 'vue-interval/dist/VueInterval.common';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 
@@ -32,6 +33,7 @@ Vue.use(VueGlobalVar, {
   },
 });
 
+Vue.mixin(VueInterval);
 Vue.mixin({
   computed: {
     isLoading() {

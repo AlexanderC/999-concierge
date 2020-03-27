@@ -27,12 +27,12 @@
         <b-button v-if="edit"
           @click.prevent="remove()"
           variant="danger">Удалить</b-button>
-        <b-button v-if="edit"
-          @click.prevent="route('/dashboard')"
-          variant="outline-secondary">Отмена</b-button>
         <b-button type="submit"
           :disabled="!token || !name || !token.trim() || !name.trim()"
           variant="outline-primary">{{ edit ? 'Сохранить' : 'Добавить' }}</b-button>
+        <b-link
+          @click.prevent="route('/dashboard')"
+          variant="outline-secondary">Назад</b-link>
       </b-form>
     </b-jumbotron>
   </b-row>

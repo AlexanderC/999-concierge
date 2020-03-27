@@ -1,6 +1,10 @@
 <template>
   <b-row align-h="center">
-    <b-table striped hover :items="items" :fields="headline">
+    <b-table striped hover
+      :items="items"
+      :fields="headline"
+      sort-by="watch"
+      sort-desc="true">
       <template v-slot:cell(watch)="row">
         <b-spinner @click="unwatch(row.item.id)" v-if="row.item.watch" variant="success" type="grow"></b-spinner>
         <b-form-checkbox @change="watch(row.item.id)" v-else>Вкл.</b-form-checkbox>
@@ -66,6 +70,7 @@
         ],
         listing: {},
         idAccount: {},
+        positions: {},
       };
     },
     recomputed: {
@@ -91,7 +96,7 @@
             items.push({
               date: republished || posted,
               watch: (settings.ads || []).includes(id),
-              position: null,
+              position: this.positions[id] || null,
               id,
               account,
               title,
@@ -113,8 +118,52 @@
       }
 
       await Promise.all(this.accountsNames.map(name => this.loadAds(name)));
+      await this.processAds();
     },
     methods: {
+      async INTERVAL__6e4$tick() { // run every 60 seconds
+        await this.processAds();
+      },
+      async processAds(skipRepublish = false) {
+        await Promise.all(this.accountsNames.map(account =>
+          this.processAdsAccount(account, skipRepublish)));
+      },
+      async processAdsAccount(account, skipRepublish = false) {
+        const settings = this.settings.accounts[account];
+        const republish = await this.processAccountAdsPositions(account);
+
+        if (!skipRepublish && republish.length > 0) {
+          const msg = `Обновляем ${republish.length} объявлени${republish.length > 1 ? 'я' : 'е'}: ${republish.join(', ')}`;
+          this.info(msg);
+          await this.rpc('post', `/adverts/${settings.token}`, republish);
+          setTimeout(async () => { // wait till cache invalidated...
+            await this.processAdsAccount(account, true); // skip republishing
+          }, 500);
+        }
+      },
+      async processAccountAdsPositions(account) {
+        const republish = [];
+        const settings = this.settings.accounts[account];
+        const ads = settings.ads || [];
+
+        if (ads.length > 0) {
+          const positions = await this.rpc('post', `/adverts/positions/${settings.token}`, ads);
+
+          if (positions) {
+            for (const id of ads) {
+              this.positions[id] = positions[id] || null;
+
+              if (!this.positions[id]) {
+                republish.push(id);
+              }
+            }
+
+            this.$recompute('items');
+          }
+        }
+
+        return republish;
+      },
       async watch(id) {
         const account = this.idAccount[id];
         this.settings.accounts[account].ads = this.settings.accounts[account].ads || [];

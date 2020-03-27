@@ -11,6 +11,10 @@
             <b-dropdown-item v-for="account in accountsNames" @click="route(`/account/${account}`)">
               {{ account }}
             </b-dropdown-item>
+            <b-dropdown-divider></b-dropdown-divider>
+            <b-dropdown-item variant="secondary" @click="route('/initialize')">
+              Добавить
+            </b-dropdown-item>
           </b-nav-item-dropdown>
         </b-navbar-nav>
 
@@ -20,7 +24,9 @@
         </b-nav-text>
       </b-navbar>
       <b-container fluid class="align-items-center">
-        <router-view></router-view>
+        <transition>
+          <router-view></router-view>
+        </transition>
       </b-container>
     </b-container>
   </div>
