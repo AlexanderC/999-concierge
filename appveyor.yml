@@ -26,3 +26,7 @@ build_script:
   - npm run build
 
 test: off
+
+artifacts:
+  - path: "build\\999-concierge Setup 1.0.0.exe"
+    name: 999-concierge
