@@ -1,5 +1,10 @@
 <template>
   <b-row align-h="center">
+    <b-button :disabled="isLoading" @click="processAds()" variant="link">
+      <b-icon :animation="isLoading ? 'spin' : null" icon="arrow-clockwise" variant="dark"></b-icon>
+      Обновить
+    </b-button>
+
     <b-table striped hover
       :items="items"
       :fields="headline"
@@ -71,6 +76,7 @@
         listing: {},
         idAccount: {},
         positions: {},
+        republished: {},
       };
     },
     recomputed: {
@@ -93,8 +99,11 @@
             title,
             state,
           } of this.listing[account]) {
+            const dateRemote = republished || posted;
+            const dateLocal = this.republished[id];
+
             items.push({
-              date: republished || posted,
+              date: (!dateLocal || dateRemote > dateLocal) ? dateRemote : dateLocal,
               watch: (settings.ads || []).includes(id),
               position: this.positions[id] || null,
               id,
@@ -117,7 +126,6 @@
         this.route('/initialize');
       }
 
-      await Promise.all(this.accountsNames.map(name => this.loadAds(name)));
       await this.processAds();
     },
     methods: {
@@ -125,10 +133,14 @@
         await this.processAds();
       },
       async processAds(skipRepublish = false) {
-        await Promise.all(this.accountsNames.map(account =>
+        await Promise.all(this.accountsNames.map(async account =>
           this.processAdsAccount(account, skipRepublish)));
       },
       async processAdsAccount(account, skipRepublish = false) {
+        if (!skipRepublish) {
+          await this.loadAds(account); // reload ads
+        }
+
         const settings = this.settings.accounts[account];
         const republish = await this.processAccountAdsPositions(account);
 
@@ -136,6 +148,11 @@
           const msg = `Обновляем ${republish.length} объявлени${republish.length > 1 ? 'я' : 'е'}: ${republish.join(', ')}`;
           this.info(msg);
           await this.rpc('post', `/adverts/${settings.token}`, republish);
+
+          for (const id of republish) {
+            this.republished[id] = new Date().toISOString();
+          }
+
           setTimeout(async () => { // wait till cache invalidated...
             await this.processAdsAccount(account, true); // skip republishing
           }, 500);
@@ -147,6 +164,7 @@
         const ads = settings.ads || [];
 
         if (ads.length > 0) {
+          await this.loadAds(account);
           const positions = await this.rpc('post', `/adverts/positions/${settings.token}`, ads);
 
           if (positions) {
