@@ -200,13 +200,48 @@
         const { token } = this.accounts[account];
         const ads = await this.rpc('get', `/adverts/${token}`);
 
+        const removedAds = await this.invalidateMissingOrHiddenAds(account, ads);
+
+        if (removedAds.length > 0) {
+          const msg = `Прекращяем авто-топ ${removedAds.length} скрытых или удалённых объявлений: ${removedAds.join(', ')}`;
+          this.warning(msg);
+        }
+
         if (ads) {
           for (const ad of ads) {
             this.idAccount[ad.id] = account;
           }
           this.listing[account] = ads;
           this.$recompute('items');
+
+          const msg = `loaded ${removedAds.length} ads: ${removedAds.join(', ')}`;
+          this.success(msg);
         }
+      },
+      async invalidateMissingOrHiddenAds(account, ads) {
+        const removedAds = [];
+
+        if (!Array.isArray(this.settings.accounts[account].ads)
+          || this.settings.accounts[account].ads.length <= 0) {
+          return removedAds;
+        }
+
+        const existingAds = ads.map(x => x.id);
+        const adsToValidate = this.settings.accounts[account].ads;
+
+        for (const id of adsToValidate) {
+          if (!existingAds.includes(id)) {
+            this.settings.accounts[account].ads = this.settings.accounts[account].ads
+              .filter(x => x !== id);
+            removedAds.push(id);
+          }
+        }
+
+        if (removedAds.length > 0) {
+          await this.saveSettings(this.settings);
+        }
+
+        return removedAds;
       },
     },
   };

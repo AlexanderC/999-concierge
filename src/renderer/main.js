@@ -21,7 +21,7 @@ Vue.use(VueRecomputed);
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 Vue.use(TablePlugin);
-Vue.use(Notify, { position: 'bottom-full' });
+Vue.use(Notify, { position: 'bottom-full', visibility: 10000, closeButtonClass: 'close' });
 Vue.use(VueGlobalVar, {
   globals: {
     runtime: {
