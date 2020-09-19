@@ -4,7 +4,7 @@ export default {
   path: '/adverts',
   async handler(req, _res, client) {
     const ids = Array.from(req.body);
-
-    return Promise.all(ids.map(id => client.post(`/adverts/${id}/republish`)));
+    const responses = await Promise.all(ids.map(id => client.post(`/adverts/${id}/republish`)));
+    return responses.map(({ data }) => data);
   },
 };
