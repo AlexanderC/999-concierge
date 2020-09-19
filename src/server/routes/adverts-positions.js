@@ -30,14 +30,14 @@ export default {
       const page = await this.browser.newPage();
 
       page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36');
-      await page.goto(`https://999.md/ru/list/${path}?view_type=short&page=1`);
+      await page.goto(`https://999.md/ru/list/${path}?view_type=short&page=1`, { timeout: 180000 }); // wait 3 minutes...
 
-      const itemsList = await page.$$('#js-ads-container > table > tbody > tr');
+      const itemsList = await page.$$('#js-ads-container > ul > li.ads-list-photo-item');
 
       const items = await Promise.all(itemsList
         .map(item => item.$eval(
-          'td.ads-list-table-title > div > h3 > a',
-          a => a.href.replace('https://999.md/ru/', '').trim(),
+          'div.ads-list-photo-item-title > a',
+          a => a.href.split('/').pop().trim(),
         )),
       );
 

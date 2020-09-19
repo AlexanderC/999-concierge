@@ -129,7 +129,7 @@
       await this.processAds();
     },
     methods: {
-      async INTERVAL__6e4$tick() { // run every 60 seconds
+      async INTERVAL__12e4$tick() { // run every 2 minutes (120 sec)
         await this.processAds();
       },
       async processAds(skipRepublish = false) {
