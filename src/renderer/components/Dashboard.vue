@@ -202,20 +202,17 @@
 
         const removedAds = await this.invalidateMissingOrHiddenAds(account, ads);
 
-        if (removedAds.length > 0) {
+        if ((removedAds || []).length > 0) {
           const msg = `Прекращяем авто-топ ${removedAds.length} скрытых или удалённых объявлений: ${removedAds.join(', ')}`;
           this.warning(msg);
         }
 
-        if (ads) {
+        if ((ads || []).length > 0) {
           for (const ad of ads) {
             this.idAccount[ad.id] = account;
           }
           this.listing[account] = ads;
           this.$recompute('items');
-
-          const msg = `loaded ${removedAds.length} ads: ${removedAds.join(', ')}`;
-          this.success(msg);
         }
       },
       async invalidateMissingOrHiddenAds(account, ads) {
