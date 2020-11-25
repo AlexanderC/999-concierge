@@ -162,22 +162,24 @@
         const republish = [];
         const settings = this.settings.accounts[account];
         const ads = settings.ads || [];
+        const lookupAds = await this.loadAds(account);
 
-        if (ads.length > 0) {
-          await this.loadAds(account);
-          const positions = await this.rpc('post', `/adverts/positions/${settings.token}`, ads);
+        const positions = await this.rpc(
+          'post',
+          `/adverts/positions/${settings.token}`,
+          lookupAds,
+        );
 
-          if (positions) {
-            for (const id of ads) {
-              this.positions[id] = positions[id] || null;
+        if (positions) {
+          for (const id of lookupAds) {
+            this.positions[id] = positions[id] || null;
 
-              if (!this.positions[id]) {
-                republish.push(id);
-              }
+            if (!this.positions[id] && ads.includes(id)) {
+              republish.push(id);
             }
-
-            this.$recompute('items');
           }
+
+          this.$recompute('items');
         }
 
         return republish;
@@ -213,7 +215,11 @@
           }
           this.listing[account] = ads;
           this.$recompute('items');
+
+          return ads.map(ad => ad.id);
         }
+
+        return [];
       },
       async invalidateMissingOrHiddenAds(account, ads) {
         const removedAds = [];
